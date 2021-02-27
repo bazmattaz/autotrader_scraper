@@ -1,11 +1,7 @@
-import requests
-import json
-import csv
+import requests, json, csv, traceback, cloudscraper, sys
 from bs4 import BeautifulSoup
-import traceback
-import cloudscraper
 
-def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min_year=1995, max_year=1995, include_writeoff="include", max_attempts_per_page=5, verbose=False):
+def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min_year=1995, max_year=1995, include_writeoff="include", max_attempts_per_page=5, verbose=False, fueltype="Petrol", transmission="Automatic", maximummileage=90000, pricefrom=5000, priceto=8000, minimumbadgeenginesize=1.2, maximumbadgeenginesize=2.0):
 
 	# To bypass Cloudflare protection
 	scraper = cloudscraper.create_scraper()
@@ -38,6 +34,13 @@ def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min
 		"model": model,
 		"search-results-price-type": "total-price",
 		"search-results-year": "select-year",
+		"fuel-type": fueltype,
+		"transmission":transmission,
+		"maximum-mileage":maximummileage,
+		"price-from":pricefrom,
+		"price-to":priceto,
+		"minimum-badge-engine-size":minimumbadgeenginesize,
+		"maximum-badge-engine-size":maximumbadgeenginesize,
 	}
 
 	if (include_writeoff == "include"):
@@ -61,6 +64,7 @@ def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min
 			params["page"] = page
 
 			r = scraper.get(url, params=params)
+
 			if verbose:
 				print("Year:     ", year)
 				print("Page:     ", page)
@@ -69,15 +73,20 @@ def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min
 			try:
 
 				if r.status_code != 200: # if not successful (e.g. due to bot protection), log as an attempt
-					attempt = attempt + 1
-					if attempt <= max_attempts_per_page:
-						if verbose:
-							print("Exception. Starting attempt #", attempt, "and keeping at page #", page)
-					else:
-						page = page + 1
-						attempt = 1
-						if verbose:
-							print("Exception. All attempts exhausted for this page. Skipping to next page #", page)
+					# Add a check to see if it's a 404 message
+					if r.status_code == 404:
+						print("Script exiting after receiving a 404 error")
+						#quit()
+					else: 
+						attempt = attempt + 1
+						if attempt <= max_attempts_per_page:
+							if verbose:
+								print("Exception. Starting attempt #", attempt, "and keeping at page #", page)
+						else:
+							page = page + 1
+							attempt = 1
+							if verbose:
+								print("Exception. All attempts exhausted for this page. Skipping to next page #", page)
 
 				else:
 
@@ -104,7 +113,7 @@ def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min
 							car = {}
 							car["name"] = article.find("h3", {"class": "product-card-details__title"}).text.strip()				
 							car["link"] = "https://www.autotrader.co.uk" + article.find("a", {"class": "tracking-standard-link"})["href"][: article.find("a", {"class": "tracking-standard-link"})["href"].find("?")]
-							car["price"] = article.find("div", {"class": "product-card-pricing__price"}).text.strip()
+							car["price"] = int((article.find("div", {"class": "product-card-pricing__price"}).text.strip()).replace(',','').strip('£'))
 
 							key_specs_bs_list = article.find("ul", {"class": "listing-key-specs"}).find_all("li")
 							
@@ -158,7 +167,10 @@ def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min
 
 	except KeyboardInterrupt:
 		pass
-
+	
+	print("-----------------------------")
+	print(len(results), " cars found in this search", )
+	print("-----------------------------")
 	return results
 
 ### Output functions ###
