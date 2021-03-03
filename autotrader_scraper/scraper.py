@@ -1,7 +1,8 @@
-import requests, json, csv, traceback, cloudscraper, sys
+import requests, json, csv, traceback, cloudscraper, sys, time
+from time import sleep
 from bs4 import BeautifulSoup
 
-def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min_year=1995, max_year=1995, include_writeoff="include", max_attempts_per_page=5, verbose=False, fueltype="Petrol", transmission="Automatic", maximummileage=90000, pricefrom=5000, priceto=8000, minimumbadgeenginesize=1.2, maximumbadgeenginesize=2.0):
+def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min_year=1995, max_year=2021, include_writeoff="include", max_attempts_per_page=5, verbose=False, fueltype="Petrol", transmission="Automatic", maximummileage=90000, pricefrom=5000, priceto=8000, minimumbadgeenginesize=1.0, maximumbadgeenginesize=2.0, annual_tax_cars="TO_500"):
 
 	# To bypass Cloudflare protection
 	scraper = cloudscraper.create_scraper()
@@ -41,6 +42,7 @@ def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min
 		"price-to":priceto,
 		"minimum-badge-engine-size":minimumbadgeenginesize,
 		"maximum-badge-engine-size":maximumbadgeenginesize,
+		"annual-tax-cars":annual_tax_cars,
 	}
 
 	if (include_writeoff == "include"):
@@ -75,8 +77,8 @@ def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min
 				if r.status_code != 200: # if not successful (e.g. due to bot protection), log as an attempt
 					# Add a check to see if it's a 404 message
 					if r.status_code == 404:
-						print("Script exiting after receiving a 404 error")
-						#quit()
+						print("Warning: 404 error returned. Sleeping for 30 seconds.")
+						time.sleep(30)
 					else: 
 						attempt = attempt + 1
 						if attempt <= max_attempts_per_page:
@@ -113,6 +115,7 @@ def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min
 							car = {}
 							car["name"] = article.find("h3", {"class": "product-card-details__title"}).text.strip()				
 							car["link"] = "https://www.autotrader.co.uk" + article.find("a", {"class": "tracking-standard-link"})["href"][: article.find("a", {"class": "tracking-standard-link"})["href"].find("?")]
+							car["ID"] = int(car["link"].strip("https://www.autotrader.co.uk/car-details/"))
 							car["price"] = int((article.find("div", {"class": "product-card-pricing__price"}).text.strip()).replace(',','').strip('£'))
 
 							key_specs_bs_list = article.find("ul", {"class": "listing-key-specs"}).find_all("li")
@@ -176,7 +179,7 @@ def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min
 ### Output functions ###
 
 def save_csv(results = [], filename = "scraper_output.csv"):
-	csv_columns = ["name", "link", "price", "mileage", "BHP", "transmission", "fuel", "owners", "body", "ULEZ", "engine", "year"]
+	csv_columns = ["name", "link", "ID", "price", "mileage", "BHP", "transmission", "fuel", "owners", "body", "ULEZ", "engine", "year"]
 
 	with open(filename, "w", newline='') as f:
 		writer = csv.DictWriter(f, fieldnames=csv_columns)
