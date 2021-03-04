@@ -4,17 +4,18 @@ Search for a car to harvest the data from. This script is intended to be run at 
 what ths script is used for:
 - Enter the search query you have want to harvest
 - It calls the automated_scraper.py to do a search and scrae new cars into a csv
-- The automated_scraper.py script will check to see if a CSV has been created already - if not it willcreta
+- The automated_scraper.py script will check to see if a CSV has been created already - if not it will crete one in the data folder
 
 To DO:
-- Instead of returning results as JSON just return the number of new cars found in this particular run - Log this in a log file
 - Add support for multiple cars - into seperate CSVs?
+- Add the ability to add data to google sheets
+
 """
 
 import automated_scraper
 from automated_scraper import get_cars
 
-# If you comment out these search params they'll just get anywya usinfg the defaults in the script
+# If you comment out these search params they'll just get anywya using the defaults in the script
 results = get_cars(
         make = "MAZDA",
         model = "MAZDA6",
@@ -27,8 +28,8 @@ results = get_cars(
         fueltype = "Petrol",
         transmission = "Automatic",
         maximummileage = "500000",
-        pricefrom = 21000,
-        priceto = 25000,
+        pricefrom = 5000,
+        priceto = 8000,
         minimumbadgeenginesize = 1.0,
         maximumbadgeenginesize = 2.0,
         annual_tax_cars = "TO_500",  #Options include: TO_20, TO_30, TO_130, TO_145, TO_185, TO_210... 

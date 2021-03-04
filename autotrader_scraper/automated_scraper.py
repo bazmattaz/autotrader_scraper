@@ -1,12 +1,18 @@
-import requests, json, csv, traceback, cloudscraper, sys, time, os.path
+import requests, json, csv, traceback, cloudscraper, sys, time, os.path, logging
 from time import sleep
 from bs4 import BeautifulSoup
 from datetime import datetime
+from pathlib import Path
 
 def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min_year=1995, max_year=2021, include_writeoff="include", max_attempts_per_page=5, verbose=False, fueltype="Petrol", transmission="Automatic", maximummileage=90000, pricefrom=5000, priceto=8000, minimumbadgeenginesize=1.0, maximumbadgeenginesize=2.0, annual_tax_cars="TO_500"):
 
-    # Set the output filename
-    filename = str(make) + "_" + str(model) + ".csv"
+    # Setup a custom log with the username in the filename
+    logname = str(make) + "_" + str(model) + ".log"
+    logging.basicConfig(filename=logname, level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+
+    # Set the output filename and set it's path to the data folder
+    filepartial = "data/" + str(make) + "_" + str(model) + ".csv"
+    filename = Path(__file__).parent / filepartial
 
     def check_car(car_ID):
         csv_file = csv.reader(open(filename, "r"), delimiter=",")
@@ -95,19 +101,18 @@ def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min
 
                 if r.status_code != 200: # if not successful (e.g. due to bot protection), log as an attempt
                     # Add a check to see if it's a 404 message
-                    if r.status_code == 404:
-                        print("Warning: 404 error returned. Sleeping for 30 seconds.")
-                        time.sleep(30)
+                    if r.status_code == 404:    
+                        logging.error("Error: 404 error returned. This query likely didnt return any results")
                     else: 
                         attempt = attempt + 1
                         if attempt <= max_attempts_per_page:
                             if verbose:
-                                print("Exception. Starting attempt #", attempt, "and keeping at page #", page)
+                                logging.info("Exception. Starting attempt #", attempt, "and keeping at page #", page)
                         else:
                             page = page + 1
                             attempt = 1
                             if verbose:
-                                print("Exception. All attempts exhausted for this page. Skipping to next page #", page)
+                                logging.info("Exception. All attempts exhausted for this page. Skipping to next page #", page)
 
                 else:
 
@@ -208,4 +213,5 @@ def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min
             writer.writerow(data)
 
     # Return the number of updates
+    logging.info(str(len(results)) + " new cars found and added to existing CSV")
     return len(results)
