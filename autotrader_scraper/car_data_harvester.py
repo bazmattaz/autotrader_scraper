@@ -57,4 +57,4 @@ for item in cars:
             verbose = False,
         )
 
-    print(str(results) + " new cars found and added to existing CSV")
+    print(str(results) + " new cars found and added to the " + item["make"] + " " + item["model"] + " CSV")

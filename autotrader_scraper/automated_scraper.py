@@ -99,21 +99,20 @@ def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min
 
             try:
 
-                if r.status_code != 200: # if not successful (e.g. due to bot protection), log as an attempt
-                    # Add a check to see if it's a 404 message
-                    if r.status_code == 404:
-                        print("404 error!")    
-                        logging.error("Error: 404 error returned. This query likely didnt return any results")
-                    else: 
-                        attempt = attempt + 1
-                        if attempt <= max_attempts_per_page:
-                            if verbose:
-                                logging.info("Exception. Starting attempt #", attempt, "and keeping at page #", page)
-                        else:
-                            page = page + 1
-                            attempt = 1
-                            if verbose:
-                                logging.info("Exception. All attempts exhausted for this page. Skipping to next page #", page)
+                if r.status_code == 404:  
+                    logging.error("Error: 404 error returned")
+                    break
+
+                elif r.status_code != 200 and r.status_code != 404: # if not successful (e.g. due to bot protection), log as an attempt
+                    attempt = attempt + 1
+                    if attempt <= max_attempts_per_page:
+                        if verbose:
+                            logging.info("Exception. Starting attempt #", attempt, "and keeping at page #", page)
+                    else:
+                        page = page + 1
+                        attempt = 1
+                        if verbose:
+                            logging.info("Exception. All attempts exhausted for this page. Skipping to next page #", page)
 
                 else:
 
