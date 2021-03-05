@@ -174,7 +174,7 @@ def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min
                                     elif key_spec_bs[1] == "." and key_spec_bs[3] == "L":
                                         car["engine"] = key_spec_bs
                                 
-                                car["date_scraped"] = datetime.now().strftime("%d/%m/%Y")
+                                car["date_scraped"] = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
                                 results.append(car)
                             
                             n_this_year_results = n_this_year_results + 1
