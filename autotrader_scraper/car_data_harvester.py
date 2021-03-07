@@ -1,20 +1,15 @@
 """
-Search for a car to harvest the data from. This script is intended to be run at an interval (daily weekly....etc
+Search for a car to harvest the data from. This script is intended to be run at an interval (daily weekly....etc)
 
 what ths script is used for:
 - Enter the search query you have want to harvest
 - It calls the automated_scraper.py to do a search and scrae new cars into a csv
-- The automated_scraper.py script will check to see if a CSV has been created already - if not it will crete one in the data folder
-
-To DO:
-- Add support for multiple cars - into seperate CSVs?
-- Add the ability to add data to google sheets
-
+- The automated_scraper.py script will check to see if a CSV has been created already - if not it will crete one in the /data folder
 """
 import automated_scraper
 from automated_scraper import get_cars
 
-# List all the make and models to search for - a seperate cWV will be created for each car
+# List all the make and models to search for - a seperate CSV will be created for each car within the /data folder
 cars = [{ "make":"MAZDA",
         "model":"MAZDA6"
         },
@@ -35,9 +30,9 @@ cars = [{ "make":"MAZDA",
         },
 ]
 
-# If you comment out these search params they'll just get anywya using the defaults in the script
+# Loop through the cars above and call the scraper
 for item in cars:
-    results = get_cars(
+    results = get_cars(  # Note: If you comment out these search params the defualt values in the automated_scraper.py will be used
             make = item["make"],
             model = item["model"],
             postcode = "SW1A 0AA",

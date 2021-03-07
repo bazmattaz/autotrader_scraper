@@ -7,7 +7,7 @@ from pathlib import Path
 def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min_year=1995, max_year=2021, include_writeoff="include", max_attempts_per_page=5, verbose=False, fueltype="Petrol", transmission="Automatic", maximummileage=90000, pricefrom=5000, priceto=8000, minimumbadgeenginesize=1.0, maximumbadgeenginesize=2.0, annual_tax_cars="TO_500"):
 
     # Setup a custom log with the username in the filename
-    logname = str(make) + "_" + str(model) + ".log"
+    logname = Path(__file__).parent / "data/automated_scraper.log"
     logging.basicConfig(filename=logname, level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
     # Set the output filename and set it's path to the data folder
@@ -145,7 +145,9 @@ def get_cars(make="BMW", model="5 SERIES", postcode="SW1A 0AA", radius=1500, min
                                 # Car hasn't been found in the CSV so scrape it
                                 car = {}
                                 car["ID"] = car_ID
-                                car["name"] = article.find("h3", {"class": "product-card-details__title"}).text.strip()                
+                                car_title = article.find("h3", {"class": "product-card-details__title"}).text.strip()
+                                car_subtitle = article.find("p", {"class": "product-card-details__subtitle"}).text.strip()
+                                car["name"] = car_title + " " + car_subtitle
                                 car["link"] = car_url
                                 car["price"] = int((article.find("div", {"class": "product-card-pricing__price"}).text.strip()).replace(',','').strip('£'))
 
